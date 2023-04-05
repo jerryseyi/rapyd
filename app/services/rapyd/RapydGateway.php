@@ -5,6 +5,7 @@ namespace App\services\rapyd;
 use Config;
 use DateTime;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 class RapydGateway
 {
@@ -50,7 +51,12 @@ class RapydGateway
      */
     protected int|DateTime $timestamp;
 
-    public function __construct()
+    /**
+     * Set up the connection instance to rapyd using guzzle client.
+     *
+     * @param string $method
+     */
+    public function __construct(string $method, string $url)
     {
         $this->setCredentials();
         $this->client = new Client(['base_url' => $this->baseUrl,
@@ -63,6 +69,11 @@ class RapydGateway
                     'idempotency' => TransRef::getHashedToken()
                 ]
             ]);
+    }
+
+    public function getClient()
+    {
+        return $this->client;
     }
 
     /**
@@ -89,5 +100,13 @@ class RapydGateway
         $sig_string = "$this->timestamp$this->accessKey$this->secretKey$this->baseUrl";
         $hash_sig_string = hash_hmac("sha256", $sig_string, $this->secretKey);
         return base64_encode($hash_sig_string);
+    }
+
+    /**
+     * @throws GuzzleException
+     */
+    public function createPayment($data)
+    {
+        return $this->client;
     }
 }
